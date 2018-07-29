@@ -50,15 +50,15 @@ def model(x, logits=False, training=False):
 #FGSM
 def fgm(model, x, eps=0.01, epochs=1, sign=True, clip_min=0, clip_max=1):
     xadv = tf.identity(x)
-    ybar = model(xadv) #probs 0-1
-    yshape = ybar.get_shape().as_list()
-    ydim = yshape[1]
+    ybar = model(xadv) # returns 10x1 matrix, each number is between 0 and 1
+    yshape = ybar.get_shape().as_list() #To get the shape as a list of ints
+    ydim = yshape[1] # == 10
 
-    indices = tf.argmax(ybar, axis=1)
+    indices = tf.argmax(ybar, axis=1) #returns max index
     target = tf.cond(
      tf.equal(ydim,1),
      lambda: tf.nn.relu(tf.sign(ybar-0.5)),
-     lambda: tf.one_hot(indices, ydim, on_value=1.0, off_value=0.0))
+     lambda: tf.one_hot(indices, ydim, on_value=1.0, off_value=0.0)) #tf.one_hot(indices,depth)
 
     loss_fn = tf.nn.softmax_cross_entropy_with_logits
     noise_fn = tf.sign
